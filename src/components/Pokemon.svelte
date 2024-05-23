@@ -1,13 +1,30 @@
 <script lang="ts">
 	import type { IndexPokemon } from '../routes/+page';
 	import { caughtPokemons } from '$lib/stores';
+	import { page } from '$app/stores';
 	export let pokemon: IndexPokemon;
 
+	export let onRemove: (pokemon: IndexPokemon) => void;
+
+	let canCatchPokemon: boolean = true;
+
+	{
+		$page.url.pathname === '/' ? (canCatchPokemon = true) : (canCatchPokemon = false);
+	}
+
 	const catchPokemon = () => {
-		caughtPokemons.update((pokemons) => {
-			return [...pokemons, pokemon];
-		});
-		console.log('catch pokemon', pokemon);
+		if (canCatchPokemon) {
+			caughtPokemons.update((pokemons) => {
+				return [...pokemons, pokemon];
+			});
+			console.log('catch pokemon', pokemon);
+		}
+	};
+
+	const handleRemove = () => {
+		if (onRemove) {
+			onRemove(pokemon);
+		}
 	};
 </script>
 
@@ -18,7 +35,11 @@
 >
 	<div class="flex flex-col items-center" on:click={catchPokemon}>
 		<img src={pokemon.image} alt={pokemon.name} />
-		{pokemon.name}
+
+		{pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}
 	</div>
 	<div class="absolute top-2 left-2 text-slate-600">{pokemon.id}</div>
+	{#if !canCatchPokemon}
+		<button on:click|stopPropagation={handleRemove} class="absolute top-2 right-2">X</button>
+	{/if}
 </div>
